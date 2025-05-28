@@ -35,3 +35,9 @@ sudo chown mystro:mystro /home/mystro/.ssh/authorized_keys
 ```powershell
 ssh -i "$env:USERPROFILE\.ssh\id_mystro_clean" -p 13976 mystro@78.47.205.8
 ```
+
+## 🗑️ 7. حذف مستخدم مع مجلد الـ Home الخاص به على السيرفر
+```bash
+sudo deluser --remove-home mystro
+ls /home
+```
