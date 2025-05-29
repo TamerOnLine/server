@@ -1,150 +1,193 @@
-import textwrap
+from textwrap import dedent
 
-def main():
+def generate_readme(user, server_ip, ssh_port, domain, key_clean,
+                    key_github, repo_name, flask_port, gunicorn_port,
+                    http_port, https_port):
     """
-    Collects setup information from the user and generates a markdown configuration guide
-    for a new user with Flask, SSH, and GitHub setup instructions.
-    
-    Prompts the user for various configuration inputs, generates a README markdown file
-    based on the inputs, and saves it to the disk.
+    Generates a formatted README file for setting up a Flask application with
+    SSH, GitHub, and server configurations.
+
+    Args:
+        user (str): Username for the server.
+        server_ip (str): IP address of the server.
+        ssh_port (int): SSH port number.
+        domain (str): Domain name for the server.
+        key_clean (str): Clean SSH key filename for local to server.
+        key_github (str): SSH key filename for GitHub.
+        repo_name (str): Name of the GitHub repository.
+        flask_port (int): Port for running the Flask app.
+        gunicorn_port (int): Port for Gunicorn server.
+        http_port (int): HTTP port number.
+        https_port (int): HTTPS port number.
+
+    Returns:
+        str: The content of the generated README.
     """
-    user = input("Enter new username (e.g., mystro): ").strip()
-    server_ip = input("Enter server IP address: ").strip()
-
-    ssh_port = input("Enter SSH port (default: 13976): ").strip() or "13976"
-    domain = input(f"Enter full domain name (default: {user}.com): ").strip() or f"{user}.com"
-    key_clean = input(f"Enter Windows-to-server SSH key name (default: id_{user}): ").strip() or f"id_{user}"
-    key_github = input(f"Enter GitHub key name on server (default: id_github_{user}): ").strip() or f"id_github_{user}"
-    repo_name = input(f"Enter GitHub repository name (default: {user}): ").strip() or user
-
-    flask_port = input("Enter Flask port (e.g., 5000): ").strip()
-    gunicorn_port = input("Enter Gunicorn port (e.g., 8000): ").strip()
-    http_port = input("Enter HTTP port (default: 80): ").strip() or "80"
-    https_port = input("Enter HTTPS port (default: 443): ").strip() or "443"
-
     filename = f"README-full-{user}.md"
 
-    content = textwrap.dedent(f"""
-        # Complete Setup for User {user} with Flask, SSH, and GitHub
+    content = dedent(f"""
+    # 🛡️ Complete Setup for User {user} with Flask, SSH, and GitHub
 
-        ## 1. Create a New User on the Server
+    ---
 
-        ```bash
-        sudo adduser {user}
-        sudo usermod -aG sudo {user}
-        sudo mkdir -p /home/{user}/.ssh
-        sudo chown {user}:{user} /home/{user}/.ssh
-        sudo chmod 700 /home/{user}/.ssh
-        ```
+    ## 🧱 1. Create a New User on the Server
 
-        ## 2. Generate SSH Key from Windows to Server
+    ```bash
+    sudo adduser {user}
+    sudo usermod -aG sudo {user}
+    sudo mkdir -p /home/{user}/.ssh
+    sudo chown {user}:{user} /home/{user}/.ssh
+    sudo chmod 700 /home/{user}/.ssh
+    ```
 
-        ```powershell
-        ssh-keygen -t ed25519 -C "{user}-server" -f ${{env:USERPROFILE}}\\.ssh\\{key_clean}
-        Get-Content ${{env:USERPROFILE}}\\.ssh\\{key_clean}.pub | Set-Clipboard
-        ```
+    ---
 
-        Paste the key into the server:
+    ## 🔐 2. Generate SSH Key from Windows to Server
 
-        ```bash
-        sudo nano /home/{user}/.ssh/authorized_keys
-        sudo chmod 600 /home/{user}/.ssh/authorized_keys
-        sudo chown {user}:{user} /home/{user}/.ssh/authorized_keys
-        ```
+    ```powershell
+    ssh-keygen -t ed25519 -C "{user}-key-local to server" -f ${{env:USERPROFILE}}\\.ssh\\{key_clean}
+    Get-Content ${{env:USERPROFILE}}\\.ssh\\{key_clean}.pub | Set-Clipboard
+    ```
 
-        Test the connection:
+    ### 📥 Paste the Key into the Server:
 
-        ```powershell
-        ssh -i ${{env:USERPROFILE}}\\.ssh\\{key_clean} -p {ssh_port} {user}@{server_ip}
-        ```
+    ```bash
+    sudo nano /home/{user}/.ssh/authorized_keys
+    sudo chmod 600 /home/{user}/.ssh/authorized_keys
+    sudo chown {user}:{user} /home/{user}/.ssh/authorized_keys
+    ```
 
-        ## 3. Generate GitHub Key from Server
+    ### ✅ Test the Connection:
 
-        ```bash
-        ssh-keygen -t ed25519 -C "github-deploy" -f ~/.ssh/{key_github}
-        cat ~/.ssh/{key_github}.pub
-        ```
+    ```powershell
+    ssh -i ${{env:USERPROFILE}}\\.ssh\\{key_clean} -p {ssh_port} {user}@{server_ip}
+    ```
 
-        Add this key to GitHub under Settings → SSH Keys.
+    ---
 
-        ```bash
-        ssh -T git@github.com
-        ```
+    ## 🔗 3. Generate GitHub Key from Server
 
-        ## 4. Clone the Project from GitHub
+    ```bash
+    ssh-keygen -t ed25519 -C "{user}-key-local to server" -f ~/.ssh/{key_github}
+    cat ~/.ssh/{key_github}.pub
+    ```
 
-        ```bash
-        cd ~
-        git clone git@github.com:TamerOnLine/{repo_name}.git
-        cd {repo_name}
-        ```
+    📌 Add the key to GitHub → Settings → SSH Keys.
 
-        ## 5. Setup Python Environment
+    ```bash
+    ssh -T git@github.com
+    ```
 
-        ```bash
-        python3 -m venv venv
-        source venv/bin/activate
-        pip install --upgrade pip
-        pip install -r requirements.txt
-        ```
+    ---
 
-        ## 6. Run Flask Locally
+    ## 📦 4. Clone the Project from GitHub
 
-        ```bash
-        export FLASK_APP=app.py
-        export FLASK_ENV=development
-        flask run --host=0.0.0.0 --port={flask_port}
-        ```
+    ```bash
+    cd ~
+    git clone git@github.com:TamerOnLine/{repo_name}.git
+    cd {repo_name}
+    ```
 
-        ## 7. Setup Gunicorn and Nginx
+    ---
 
-        ```bash
-        gunicorn --bind 127.0.0.1:{gunicorn_port} app:app
-        ```
+    ## 🐍 5. Setup Python Environment
 
-        Nginx configuration:
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    pip install --upgrade pip
+    pip install -r requirements.txt
+    ```
 
-        ```nginx
-        server {{
-            listen {http_port};
-            server_name {domain};
+    ---
 
-            location / {{
-                proxy_pass http://127.0.0.1:{gunicorn_port};
-                proxy_set_header Host $host;
-                proxy_set_header X-Real-IP $remote_addr;
-            }}
+    ## 💻 6. Run Flask Locally
+
+    ```bash
+    export FLASK_APP=app.py
+    export FLASK_ENV=development
+    flask run --host=0.0.0.0 --port={flask_port}
+    ```
+
+    ---
+
+    ## 🌀 7. Setup Gunicorn and Nginx
+
+    ```bash
+    gunicorn --bind 127.0.0.1:{gunicorn_port} app:app
+    ```
+
+    Configure Nginx File:
+
+    ```nginx
+    server {{
+        listen {http_port};
+        server_name {domain};
+
+        location / {{
+            proxy_pass http://127.0.0.1:{gunicorn_port};
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
         }}
-        ```
+    }}
+    ```
 
-        ```bash
-        sudo ln -s /etc/nginx/sites-available/{user} /etc/nginx/sites-enabled/
-        sudo nginx -t
-        sudo systemctl reload nginx
-        ```
+    ```bash
+    sudo ln -s /etc/nginx/sites-available/{user} /etc/nginx/sites-enabled/
+    sudo nginx -t
+    sudo systemctl reload nginx
+    ```
 
-        ## 8. Enable HTTPS
+    ---
 
-        ```bash
-        sudo apt install certbot python3-certbot-nginx -y
-        sudo certbot --nginx -d {domain} --http-01-port {http_port}
-        ```
+    ## 🔒 8. Enable HTTPS
 
-        ## 9. Enable UFW Firewall
+    ```bash
+    sudo apt install certbot python3-certbot-nginx -y
+    sudo certbot --nginx -d {domain} --http-01-port {http_port}
+    ```
 
-        ```bash
-        sudo ufw allow OpenSSH
-        sudo ufw allow {http_port},{https_port},{flask_port}/tcp
-        sudo ufw enable
-        ```
+    ---
 
-        ## Setup Complete
+    ## 🛡️ 9. Enable UFW Firewall
+
+    ```bash
+    sudo ufw allow OpenSSH
+    sudo ufw allow {http_port},{https_port},{flask_port}/tcp
+    sudo ufw enable
+    ```
+
+    ---
+
+    ## ✅ Setup Completed Successfully 🎉
     """)
 
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(content)
+    return content
 
-    print(f"\nFile successfully created: {filename}")
+def main():
+    user = input("Enter username: ").strip() or "user"
+    server_ip = input("Enter server IP: ").strip()
+    
+    ssh_port = int(input("Enter SSH port [13976]: ").strip() or "13976")
+    domain = input(f"Enter domain name [{user}.com]: ").strip() or f"{user}.com"
+    key_clean = input(f"Enter SSH key name (clean) [id_{user}]: ").strip() or f"id_{user}"
+    key_github = input(f"Enter GitHub SSH key name [id_github_{user}]: ").strip() or f"id_github_{user}"
+    repo_name = input(f"Enter GitHub repository name [{user}]: ").strip() or user
+
+    flask_port = int(input("Enter Flask port [5000]: ").strip() or "5000")
+    gunicorn_port = int(input("Enter Gunicorn port [8000]: ").strip() or "8000")
+    http_port = int(input("Enter HTTP port [80]: ").strip() or "80")
+    https_port = int(input("Enter HTTPS port [443]: ").strip() or "443")
+
+    readme_content = generate_readme(
+        user, server_ip, ssh_port, domain, key_clean, key_github,
+        repo_name, flask_port, gunicorn_port, http_port, https_port
+    )
+
+    filename = f"README-full-{user}.md"
+    with open(filename, "w", encoding="utf-8") as file:
+        file.write(readme_content)
+    print(f"✅ README saved as {filename}")
 
 
 if __name__ == "__main__":
