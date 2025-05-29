@@ -165,19 +165,25 @@ def generate_readme(user, server_ip, ssh_port, domain, key_clean,
     return content
 
 def main():
-    user = input("Enter username: ").strip() or "user"
-    server_ip = input("Enter server IP: ").strip()
-    
-    ssh_port = int(input("Enter SSH port [13976]: ").strip() or "13976")
-    domain = input(f"Enter domain name [{user}.com]: ").strip() or f"{user}.com"
-    key_clean = input(f"Enter SSH key name (clean) [id_{user}]: ").strip() or f"id_{user}"
-    key_github = input(f"Enter GitHub SSH key name [id_github_{user}]: ").strip() or f"id_github_{user}"
-    repo_name = input(f"Enter GitHub repository name [{user}]: ").strip() or user
+    user = input("Enter username [default: user]: ").strip() or "user"
 
-    flask_port = int(input("Enter Flask port [5000]: ").strip() or "5000")
-    gunicorn_port = int(input("Enter Gunicorn port [8000]: ").strip() or "8000")
-    http_port = int(input("Enter HTTP port [80]: ").strip() or "80")
-    https_port = int(input("Enter HTTPS port [443]: ").strip() or "443")
+    while True:
+        server_ip = input("Enter server IP (required): ").strip()
+        if server_ip:
+            break
+        print("⚠️ Server IP is required.")
+
+    ssh_port = int(input("Enter SSH port [default: 13976]: ").strip() or "13976")
+    domain = input(f"Enter domain name [default: {user}.com]: ").strip() or f"{user}.com"
+    key_clean = input(f"Enter SSH key name [default: id_{user}]: ").strip() or f"id_{user}"
+    key_github = input(f"Enter GitHub SSH key name [default: id_github_{user}]: ").strip() or f"id_github_{user}"
+    repo_name = input(f"Enter GitHub repository name [default: {user}]: ").strip() or user
+
+    flask_port = int(input("Enter Flask port [default: 5000]: ").strip() or "5000")
+    gunicorn_port = int(input("Enter Gunicorn port [default: 8000]: ").strip() or "8000")
+    http_port = int(input("Enter HTTP port [default: 80]: ").strip() or "80")
+    https_port = int(input("Enter HTTPS port [default: 443]: ").strip() or "443")
+
 
     readme_content = generate_readme(
         user, server_ip, ssh_port, domain, key_clean, key_github,
