@@ -22,9 +22,16 @@
 ### 🧱 الخطوات على **السيرفر** (كمستخدم root أو `tamer`):
 
 ```bash
+# Create a new user named mystro
 sudo adduser mystro
+
+# Add mystro to the sudo group
 sudo usermod -aG sudo mystro
+
+# Create the .ssh directory for storing public keys
 sudo mkdir -p /home/mystro/.ssh
+
+# Set correct ownership and permissions
 sudo chown mystro:mystro /home/mystro/.ssh
 sudo chmod 700 /home/mystro/.ssh
 ```
@@ -32,8 +39,10 @@ sudo chmod 700 /home/mystro/.ssh
 ### 🖥️ على **جهازك المحلي (Windows)**:
 
 ```powershell
+# Generate an SSH key pair named id_mystro_clean
 ssh-keygen -t ed25519 -C "mystro-server-clean" -f $env:USERPROFILE\.ssh\id_mystro_clean
-# ثم انسخ المفتاح العام:
+
+# Copy the public key to clipboard
 Get-Content $env:USERPROFILE\.ssh\id_mystro_clean.pub | Set-Clipboard
 ```
 
@@ -59,15 +68,16 @@ ssh -i $env:USERPROFILE\.ssh\id_mystro_clean -p 13976 mystro@<IP_ADDRESS>
 ### 🖥️ على **السيرفر** (كمستخدم `mystro`):
 
 ```bash
+# Generate a deploy key to access GitHub
 ssh-keygen -t ed25519 -C "github-deploy"
-# المفتاح سيكون في: /home/mystro/.ssh/id_ed25519
+# The key will be located at: /home/mystro/.ssh/id_ed25519
 ```
 
 ### 🔑 انسخ المفتاح العام:
 
 ```bash
+# Display the public key for copy-paste
 cat ~/.ssh/id_ed25519.pub
-# انسخه كاملاً
 ```
 
 ### 🌐 أضف المفتاح في GitHub:
@@ -81,7 +91,7 @@ cat ~/.ssh/id_ed25519.pub
 
 ```bash
 ssh -T git@github.com
-# يجب أن تظهر رسالة: "Hi TamerOnLine! You've successfully authenticated..."
+# Should respond with: "Hi TamerOnLine! You've successfully authenticated..."
 ```
 
 ---
@@ -98,7 +108,9 @@ git clone git@github.com:TamerOnLine/mystro.git
 ## 🗑️ حذف مستخدم بالكامل (اختياري)
 
 ```bash
+# Remove the user and their home directory
 sudo deluser --remove-home mystro
+# Confirm deletion
 ls /home  # تأكد من الحذف
 ```
 
