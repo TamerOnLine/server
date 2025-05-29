@@ -22,17 +22,29 @@
 ### 🧱 الخطوات على **السيرفر** (كمستخدم root أو `tamer`):
 
 ```bash
-# Create a new user named mystro
+# Create a new user account named 'mystro'
+# This command will also create the home directory: /home/mystro
+# You will be prompted to enter a password and some optional user info
 sudo adduser mystro
 
-# Add mystro to the sudo group
+
+# Add the user 'mystro' to the 'sudo' group
+# This grants 'mystro' administrative privileges (ability to use 'sudo' command)
+# -aG means: append (a) the user to the supplementary group(s) (G) without removing existing ones
 sudo usermod -aG sudo mystro
 
-# Create the .ssh directory for storing public keys
+
+# Create the .ssh directory inside the user's home directory
+# -p ensures that the full path is created without errors if intermediate directories don't exist
+# This directory will store authorized_keys and other SSH configuration files
 sudo mkdir -p /home/mystro/.ssh
 
-# Set correct ownership and permissions
+
+# Change the ownership of the .ssh directory to user 'mystro' and group 'mystro'
+# This is required because the directory was created using 'sudo', so it's owned by root by default
+# SSH will reject access if the directory is not owned by the correct user
 sudo chown mystro:mystro /home/mystro/.ssh
+
 
 # Set strict permissions on the .ssh directory:
 # 7 = full access (read/write/execute) for the owner (mystro)
@@ -44,13 +56,18 @@ sudo chmod 700 /home/mystro/.ssh
 ### 🖥️ على **جهازك المحلي (Windows)**:
 
 ```powershell
-# Generate an SSH key pair named id_mystro_clean
-ssh-keygen -t ed25519 -C "mystro-server-clean" -f $env:USERPROFILE\.
-ssh\id_mystro_clean
+# Generate a new SSH key pair using the ed25519 algorithm
+# -t ed25519         → Specifies the key type (modern, secure, and fast)
+# -C "mystro-server-clean" → Adds a label/comment to help identify the key later
+# -f $env:USERPROFILE\.ssh\id_mystro_clean → Sets the file name and path to save the key pair
+ssh-keygen -t ed25519 -C "mystro-server" -f $env:USERPROFILE\.ssh\id_mystro_clean
 
 
-# Copy the public key to clipboard
+# Read the contents of your public SSH key (id_mystro_clean.pub)
+# and copy it directly to the Windows clipboard
+# This makes it easy to paste into the server's authorized_keys file
 Get-Content $env:USERPROFILE\.ssh\id_mystro_clean.pub | Set-Clipboard
+
 ```
 
 ### 📥 الصق المفتاح العام داخل السيرفر:
@@ -89,16 +106,25 @@ ssh -i $env:USERPROFILE\.ssh\id_mystro_clean -p 13976 mystro@<IP_ADDRESS>
 ### 🖥️ على **السيرفر** (كمستخدم `mystro`):
 
 ```bash
-# Generate a deploy key to access GitHub
-ssh-keygen -t ed25519 -C "github-deploy"
+# Generate a new SSH key pair using the ed25519 algorithm for GitHub deployment
+# -t ed25519        → Use the secure and modern ed25519 algorithm
+# -C "github-deploy" → Add a comment to identify the key (visible in GitHub)
+# -f ~/.ssh/github_key_mystro → Set a custom filename for the key pair
+# This creates two files:
+#   ~/.ssh/github_key_mystro      → private key (keep it secret)
+#   ~/.ssh/github_key_mystro.pub  → public key (add it to GitHub)
+ssh-keygen -t ed25519 -C "github-deploy" -f ~/.ssh/github_key_mystro
 # The key will be located at: /home/mystro/.ssh/id_ed25519
 ```
 
 ### 🔑 انسخ المفتاح العام:
 
 ```bash
-# Display the public key for copy-paste
+# Display the contents of your public SSH key (id_ed25519.pub)
+# This is the key you will copy and paste into GitHub (or any other SSH host)
+# Safe to share publicly — it's used for authentication, not encryption
 cat ~/.ssh/id_ed25519.pub
+
 ```
 
 ### 🌐 أضف المفتاح في GitHub:
@@ -124,8 +150,11 @@ ssh -T git@github.com
 ## 📂 3. نسخ المشروع من GitHub
 
 ```bash
-# Navigate to the current user's home directory
+# Change the current directory to the user's home directory
+# '~' is a shortcut that represents the home directory of the current user
+# Example: for user 'mystro', this means /home/mystro
 cd ~
+
 
 # Clone the private/public GitHub repository using SSH
 # Make sure the server's SSH key is added to your GitHub account (as a deploy key)
@@ -138,10 +167,16 @@ git clone git@github.com:TamerOnLine/mystro.git
 ## 🗑️ حذف مستخدم بالكامل (اختياري)
 
 ```bash
-# Remove the user and their home directory
+# Completely delete the user 'mystro' and remove their home directory
+# --remove-home ensures that /home/mystro and all its contents (including .ssh, files, configs) are deleted
+# ⚠️ Warning: This is irreversible – make sure you no longer need the user or their data
 sudo deluser --remove-home mystro
-# Confirm deletion
-ls /home  # تأكد من الحذف
+
+# List the contents of the /home directory
+# This shows all user home directories on the system (e.g., mystro, tamer, ubuntu)
+# Useful for verifying whether a user’s home directory still exists after deletion
+ls /home
+
 ```
 
 ---
