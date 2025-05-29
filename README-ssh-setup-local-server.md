@@ -56,9 +56,21 @@ Get-Content $env:USERPROFILE\.ssh\id_mystro_clean.pub | Set-Clipboard
 ### 📥 الصق المفتاح العام داخل السيرفر:
 
 ```bash
+# Open (or create) the 'authorized_keys' file for editing
+# This file stores public keys that are allowed to SSH into the 'mystro' user account
+# Paste the public key here (e.g., id_mystro_clean.pub) and save the file
 sudo nano /home/mystro/.ssh/authorized_keys
-# الصق المفتاح هنا واحفظ
+
+# Set strict permissions for the 'authorized_keys' file:
+# 6 = read/write for the owner (mystro)
+# 0 = no permissions for group
+# 0 = no permissions for others
+# This ensures only the 'mystro' user can read or modify the file (security best practice)
 sudo chmod 600 /home/mystro/.ssh/authorized_keys
+
+# Set the owner and group of the 'authorized_keys' file to 'mystro'
+# This ensures the file is owned by the user who will use it for SSH login
+# Syntax: chown <user>:<group> <file>
 sudo chown mystro:mystro /home/mystro/.ssh/authorized_keys
 ```
 
