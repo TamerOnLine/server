@@ -1,134 +1,139 @@
-# 🛡️ Complete Setup for User {user} with Flask, SSH, and GitHub
 
-    ---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Setup Guide for Flask Application</title>
+<style>
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    margin: 20px;
+    background-color: #f9f9f9;
+    color: #333;
+  }
+  h1, h2, h3 {
+    color: #005a9c;
+  }
+  pre {
+    background-color: #272822;
+    color: #f8f8f2;
+    padding: 15px;
+    border-radius: 5px;
+    overflow-x: auto;
+    font-size: 14px;
+  }
+  code {
+    font-family: "Source Code Pro", monospace;
+  }
+  section {
+    margin-bottom: 2em;
+  }
+</style>
+</head>
+<body>
+  <h1>🛡️ Complete Setup for Flask Application</h1>
 
-    ## 🧱 1. Create a New User on the Server
+  <section>
+    <h2>1. Create a New User on the Server</h2>
+    <pre><code>sudo adduser your_username
+sudo usermod -aG sudo your_username
+sudo mkdir -p /home/your_username/.ssh
+sudo chown your_username:your_username /home/your_username/.ssh
+sudo chmod 700 /home/your_username/.ssh
+</code></pre>
+  </section>
 
-    ```bash
-    sudo adduser {user}
-    sudo usermod -aG sudo {user}
-    sudo mkdir -p /home/{user}/.ssh
-    sudo chown {user}:{user} /home/{user}/.ssh
-    sudo chmod 700 /home/{user}/.ssh
-    ```
+  <section>
+    <h2>2. Generate SSH Key from Windows to Server</h2>
+    <pre><code>ssh-keygen -t ed25519 -C "key-local-to-server" -f $env:USERPROFILE\.ssh\id_yourkey
+Get-Content $env:USERPROFILE\.ssh\id_yourkey.pub | Set-Clipboard
+</code></pre>
+    <p>Paste the key into:</p>
+    <pre><code>sudo nano /home/your_username/.ssh/authorized_keys
+sudo chmod 600 /home/your_username/.ssh/authorized_keys
+sudo chown your_username:your_username /home/your_username/.ssh/authorized_keys
+</code></pre>
+    <p>Test the connection:</p>
+    <pre><code>ssh -i $env:USERPROFILE\.ssh\id_yourkey -p 13976 your_username@your.server.ip
+</code></pre>
+  </section>
 
-    ---
+  <section>
+    <h2>3. Generate GitHub Key from Server</h2>
+    <pre><code>ssh-keygen -t ed25519 -C "github-key" -f ~/.ssh/id_github
+cat ~/.ssh/id_github.pub
+</code></pre>
+    <p>Add the key to GitHub → Settings → SSH Keys.</p>
+    <pre><code>ssh -T git@github.com
+</code></pre>
+  </section>
 
-    ## 🔐 2. Generate SSH Key from Windows to Server
+  <section>
+    <h2>4. Clone the Project from GitHub</h2>
+    <pre><code>cd ~
+git clone git@github.com:YourUsername/your-repo.git
+cd your-repo
+</code></pre>
+  </section>
 
-    ```powershell
-    ssh-keygen -t ed25519 -C "{user}-key-local to server" -f ${{env:USERPROFILE}}\\.ssh\\{key_clean}
-    Get-Content ${{env:USERPROFILE}}\\.ssh\\{key_clean}.pub | Set-Clipboard
-    ```
+  <section>
+    <h2>5. Setup Python Environment</h2>
+    <pre><code>python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+</code></pre>
+  </section>
 
-    ### 📥 Paste the Key into the Server:
+  <section>
+    <h2>6. Run Flask Locally</h2>
+    <pre><code>export FLASK_APP=app.py
+export FLASK_ENV=development
+flask run --host=0.0.0.0 --port=5000
+</code></pre>
+  </section>
 
-    ```bash
-    sudo nano /home/{user}/.ssh/authorized_keys
-    sudo chmod 600 /home/{user}/.ssh/authorized_keys
-    sudo chown {user}:{user} /home/{user}/.ssh/authorized_keys
-    ```
+  <section>
+    <h2>7. Setup Gunicorn and Nginx</h2>
+    <pre><code>gunicorn --bind 127.0.0.1:8000 myapp:app
+</code></pre>
+    <p>Configure Nginx File:</p>
+    <pre><code>server {
+    listen 80;
+    server_name yourdomain.com;
 
-    ### ✅ Test the Connection:
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+</code></pre>
+    <pre><code>sudo ln -s /etc/nginx/sites-available/your_username /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+</code></pre>
+  </section>
 
-    ```powershell
-    ssh -i ${{env:USERPROFILE}}\\.ssh\\{key_clean} -p {ssh_port} {user}@{server_ip}
-    ```
+  <section>
+    <h2>8. Enable HTTPS with Certbot</h2>
+    <pre><code>sudo apt install certbot python3-certbot-nginx -y
+sudo certbot --nginx -d yourdomain.com --http-01-port 80
+</code></pre>
+  </section>
 
-    ---
+  <section>
+    <h2>9. Enable UFW Firewall</h2>
+    <pre><code>sudo ufw allow OpenSSH
+sudo ufw allow 80,443,5000/tcp
+sudo ufw enable
+</code></pre>
+  </section>
 
-    ## 🔗 3. Generate GitHub Key from Server
-
-    ```bash
-    ssh-keygen -t ed25519 -C "{user}-key-local to server" -f ~/.ssh/{key_github}
-    cat ~/.ssh/{key_github}.pub
-    ```
-
-    📌 Add the key to GitHub → Settings → SSH Keys.
-
-    ```bash
-    ssh -T git@github.com
-    ```
-
-    ---
-
-    ## 📦 4. Clone the Project from GitHub
-
-    ```bash
-    cd ~
-    git clone git@github.com:TamerOnLine/{repo_name}.git
-    cd {repo_name}
-    ```
-
-    ---
-
-    ## 🐍 5. Setup Python Environment
-
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate
-    pip install --upgrade pip
-    pip install -r requirements.txt
-    ```
-
-    ---
-
-    ## 💻 6. Run Flask Locally
-
-    ```bash
-    export FLASK_APP=app.py
-    export FLASK_ENV=development
-    flask run --host=0.0.0.0 --port={flask_port}
-    ```
-
-    ---
-
-    ## 🌀 7. Setup Gunicorn and Nginx
-
-    ```bash
-    gunicorn --bind 127.0.0.1:{gunicorn_port} myapp:app
-    ```
-
-    Configure Nginx File:
-
-    ```nginx
-    server {{
-        listen {http_port};
-        server_name {domain};
-
-        location / {{
-            proxy_pass http://127.0.0.1:{gunicorn_port};
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-        }}
-    }}
-    ```
-
-    ```bash
-    sudo ln -s /etc/nginx/sites-available/{user} /etc/nginx/sites-enabled/
-    sudo nginx -t
-    sudo systemctl reload nginx
-    ```
-
-    ---
-
-    ## 🔒 8. Enable HTTPS
-
-    ```bash
-    sudo apt install certbot python3-certbot-nginx -y
-    sudo certbot --nginx -d {domain} --http-01-port {http_port}
-    ```
-
-    ---
-
-    ## 🛡️ 9. Enable UFW Firewall
-
-    ```bash
-    sudo ufw allow OpenSSH
-    sudo ufw allow {http_port},{https_port},{flask_port}/tcp
-    sudo ufw enable
-    ```
-
-    ---
-
-    ## ✅ Setup Completed Successfully 🎉
+  <section>
+    <h2>Setup Completed Successfully 🎉</h2>
+  </section>
+</body>
+</html>
