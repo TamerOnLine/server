@@ -114,7 +114,7 @@ def generate_readme(user, server_ip, ssh_port, domain, key_clean,
     ## 🌀 7. Setup Gunicorn and Nginx
 
     ```bash
-    gunicorn --bind 127.0.0.1:{gunicorn_port} app:app
+    gunicorn --bind 127.0.0.1:{gunicorn_port} myapp:app
     ```
 
     Configure Nginx File:
