@@ -113,7 +113,7 @@ ssh -i ${env:USERPROFILE}\.ssh\{id_mystro_clean} -p 13976 {mystro}@{<IP_ADDRESS>
 # This creates two files:
 #   ${HOME}/.ssh/github_key_mystro      → private key (keep it secret)
 #   ${HOME}/.ssh/github_key_mystro.pub  → public key (add it to GitHub)
-ssh-keygen -t {ed25519} -C "github-deploy" -f ${HOME}/.ssh/github_key_mystro
+ssh-keygen -t {ed25519} -C "{github-deploy}" -f ${HOME}/.ssh/github_key_mystro
 # The key will be located at: /home/{mystro}/.ssh/{id_ed25519}
 ```
 
